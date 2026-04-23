@@ -13,7 +13,7 @@ import (
 	bm "github.com/charmbracelet/wish/bubbletea"
 )
 
-// Styles for the UI
+// styles
 var (
 	titleStyle  = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#7d56f4")).Padding(0, 1)
 	systemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFD700")).Italic(true)
@@ -34,7 +34,7 @@ func main() {
 		wish.WithAddress("0.0.0.0:2222"),
 		wish.WithHostKeyPath("id_ed25519"), // charmbracelet/wish generates this key on first time starting server using github.com/charmbracelet/keygen
 		wish.WithMiddleware(
-			// 1. Use the Bubble Tea middleware
+			//  bubble tea middleware
 			bm.Middleware(s.teaHandler),
 		),
 	)
@@ -48,7 +48,7 @@ func main() {
 	}
 }
 
-// 2. The Tea Model: This represents the UI state for ONE user
+// Model:  UI state for each user
 type model struct {
 	server   *Server
 	sess     ssh.Session
@@ -58,7 +58,7 @@ type model struct {
 	sub      chan string // Local channel to receive broadcasts
 }
 
-// 3. ReceiveMsg: A custom message type for the Bubble Tea loop
+// custom message type for the bubble tea loop
 type receiveMsg string
 
 func (s *Server) teaHandler(sess ssh.Session) (tea.Model, []tea.ProgramOption) {
@@ -84,17 +84,18 @@ func (s *Server) teaHandler(sess ssh.Session) (tea.Model, []tea.ProgramOption) {
 }
 
 func (m model) Init() tea.Cmd {
-	// Start listening for messages immediately
+	// listening for messages immediately
 	return m.waitForMsg()
 }
 
-// waitForMsg is a command that waits for a message on the channel
+// waitForMsg waits for a message on the channel
 func (m model) waitForMsg() tea.Cmd {
 	return func() tea.Msg {
 		return receiveMsg(<-m.sub)
 	}
 }
 
+// called everytime a message is sent, handles keyboard inputs
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -139,7 +140,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case receiveMsg:
-		// When a broadcast arrives, add it to our list and wait for the next one
+		// when a broadcast arrives, add it to our list and wait for the next one
 		m.messages = append(m.messages, string(msg))
 		return m, m.waitForMsg()
 	}
@@ -151,7 +152,7 @@ func (m model) View() string {
 	var s strings.Builder
 	s.WriteString(titleStyle.Render("SSH Chat Server") + "\n\n")
 
-	// Display last 15 messages
+	// show last 15 messages
 	displayMsgs := m.messages
 	if len(displayMsgs) > 15 {
 		displayMsgs = displayMsgs[len(displayMsgs)-15:]
